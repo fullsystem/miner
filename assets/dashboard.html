@@ -26,7 +26,7 @@ body {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   color: var(--text);
   min-height: 100vh;
-  padding: 24px clamp(16px, 3vw, 48px) 80px;
+  padding: 32px clamp(24px, 4vw, 64px) 88px;
   background:
     radial-gradient(1200px 500px at 70% -10%, rgba(247,147,26,.06), transparent 60%),
     radial-gradient(900px 600px at 0% 110%, rgba(255,178,0,.04), transparent 55%),
@@ -48,7 +48,7 @@ body::after {
 header {
   display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 16px; margin-bottom: 32px;
+  padding-bottom: 16px; margin-bottom: 40px;
   animation: rise .5s ease both;
 }
 .logo {
@@ -68,13 +68,13 @@ header .spacer { flex: 1; }
 .price small { color: var(--amber-dim); font-weight: 400; margin-right: 6px; }
 
 .grid {
-  display: grid; gap: 16px;
+  display: grid; gap: 24px;
   grid-template-columns: repeat(12, 1fr);
 }
 .panel {
   background: linear-gradient(180deg, rgba(255,178,0,.025), transparent 40%), var(--panel);
   border: 1px solid var(--line);
-  padding: 24px;
+  padding: 32px;
   position: relative;
   animation: rise .55s ease both;
 }
@@ -99,7 +99,7 @@ header .spacer { flex: 1; }
 }
 
 .hero { grid-column: span 8; }
-.side { grid-column: span 4; display: flex; flex-direction: column; gap: 16px; }
+.side { grid-column: span 4; display: flex; flex-direction: column; gap: 24px; }
 .side .panel { animation-delay: .1s; }
 .third { grid-column: span 4; }
 @media (max-width: 900px) {
@@ -134,7 +134,7 @@ header .spacer { flex: 1; }
 .led.on { background: var(--amber); box-shadow: var(--glow); animation: pulse 2.2s ease infinite; }
 .led.off { background: var(--red); box-shadow: 0 0 8px rgba(255,77,58,.6); }
 
-.odds { text-align: center; padding: 32px 24px 24px; }
+.odds { text-align: center; padding: 40px 24px 24px; }
 .odds .n {
   font-family: "Martian Mono", monospace; font-weight: 800;
   font-size: clamp(22px, 3.4vw, 34px); color: var(--btc);
@@ -147,7 +147,7 @@ header .spacer { flex: 1; }
 footer {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 8;
   display: flex; justify-content: space-between; align-items: center; gap: 24px;
-  padding: 8px clamp(16px, 3vw, 48px);
+  padding: 8px clamp(24px, 4vw, 64px);
   background: rgba(10, 8, 6, .92); backdrop-filter: blur(4px);
   border-top: 1px solid var(--line);
   font-size: 10px; letter-spacing: 2px; color: var(--amber-faint); text-transform: uppercase;
