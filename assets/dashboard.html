@@ -26,7 +26,7 @@ body {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   color: var(--text);
   min-height: 100vh;
-  padding: 22px clamp(14px, 3vw, 44px) 40px;
+  padding: 22px clamp(14px, 3vw, 44px) 72px;
   background:
     radial-gradient(1200px 500px at 70% -10%, rgba(247,147,26,.06), transparent 60%),
     radial-gradient(900px 600px at 0% 110%, rgba(255,178,0,.04), transparent 55%),
@@ -145,12 +145,20 @@ header .spacer { flex: 1; }
 .odds .note { margin-top: 14px; font-size: 11px; color: var(--amber-faint); }
 
 footer {
-  margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--line);
-  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 8;
+  display: flex; justify-content: space-between; align-items: center; gap: 18px;
+  padding: 9px clamp(14px, 3vw, 44px);
+  background: rgba(10, 8, 6, .92); backdrop-filter: blur(4px);
+  border-top: 1px solid var(--line);
   font-size: 10px; letter-spacing: 2px; color: var(--amber-faint); text-transform: uppercase;
+  white-space: nowrap; overflow: hidden;
 }
 footer a { color: var(--amber-dim); text-decoration: none; border-bottom: 1px dotted var(--amber-faint); }
 footer a:hover { color: var(--amber); }
+.donate { cursor: pointer; color: var(--amber-dim); transition: color .2s; overflow: hidden; text-overflow: ellipsis; }
+.donate:hover { color: var(--amber); }
+.donate .addr { color: var(--btc); letter-spacing: 0; text-transform: none; }
+@media (max-width: 880px) { .foot-note { display: none; } }
 
 .stale { opacity: .45; transition: opacity .4s; }
 
@@ -230,7 +238,8 @@ footer a:hover { color: var(--amber); }
 </div>
 
 <footer>
-  <span>every number on this screen is real — zeros included</span>
+  <span class="foot-note">every number on this screen is real — zeros included</span>
+  <span class="donate" id="donate" title="click to copy the full address">enjoying the odds? support: <span class="addr">bc1pwy2u…2xjny5</span></span>
   <span><a href="https://github.com/fullsystem/miner" target="_blank" rel="noopener">github.com/fullsystem/miner</a></span>
 </footer>
 
@@ -311,6 +320,21 @@ async function tick() {
 
 tick();
 setInterval(tick, 10_000);
+
+// Footer donation: click to copy, with a moment of gratitude
+const DONATE_ADDR = "bc1pwy2ulg769ffvhwchk4yzkcq5yq699qwrrkg3a4lq942rj47sutcq2xjny5";
+const donateEl = $("donate");
+const donateDefault = donateEl.innerHTML;
+donateEl.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(DONATE_ADDR);
+    donateEl.textContent = "address copied — you absolute legend ♥";
+  } catch {
+    // clipboard blocked (http context): show the full address instead
+    donateEl.innerHTML = `<span class="addr">${DONATE_ADDR}</span>`;
+  }
+  setTimeout(() => { donateEl.innerHTML = donateDefault; }, 3000);
+});
 </script>
 </body>
 </html>
