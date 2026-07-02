@@ -96,6 +96,15 @@ cargo test
 WALLET=bc1q... MINER_BIN=/path/to/minerd cargo run
 ```
 
+## Support
+
+If this project made you smile (or you actually hit a block — imagine),
+donations are welcome:
+
+```
+bc1pwy2ulg769ffvhwchk4yzkcq5yq699qwrrkg3a4lq942rj47sutcq2xjny5
+```
+
 ## License
 
 MIT
