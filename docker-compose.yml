@@ -1,0 +1,19 @@
+services:
+  miner:
+    image: ghcr.io/fullsystem/miner:latest
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3500:3500"
+    environment:
+      # Sua carteira BTC — única variável obrigatória
+      WALLET: ${WALLET:?Defina WALLET no .env}
+      # Percentual dos núcleos da CPU usados pelo minerador (1-100)
+      POWER: ${POWER:-50}
+      # Nome do worker exibido na pool (útil ao rodar várias instâncias)
+      WORKER_NAME: ${WORKER_NAME:-docker}
+      # Senha do dashboard; sem ela o painel fica público em modo leitura
+      # DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    # Teto de CPU do container inteiro, além do POWER — bom para
+    # conviver com outros projetos no mesmo servidor:
+    # cpus: "2.0"
