@@ -313,9 +313,15 @@ async function tick() {
   const wallet = d.miner.worker.split(".")[0];
   $("poolLink").href = "https://web.public-pool.io/#/app/" + wallet;
 
-  const odds = fmtOdds(d.pool.hashrate_10m, d.network.difficulty);
+  // Prefer the live 10-min window; fall back to the 1h average so a fresh
+  // session (empty 10-min window) still shows meaningful odds
+  const oddsHash = d.pool.hashrate_10m || d.pool.hashrate_1h;
+  const odds = fmtOdds(oddsHash, d.network.difficulty);
   $("odds").textContent = odds || "waiting for pool data…";
-  if (odds) $("oddsNote").textContent = "per block, at your current hashrate — that's the lottery you're playing";
+  if (odds) {
+    const window = d.pool.hashrate_10m ? "current hashrate" : "1h average";
+    $("oddsNote").textContent = `per block, at your ${window} — that's the lottery you're playing`;
+  }
 }
 
 tick();
