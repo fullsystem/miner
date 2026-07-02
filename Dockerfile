@@ -18,6 +18,7 @@ RUN mkdir src && echo 'fn main() {}' > src/main.rs \
     && cargo build --release \
     && rm -rf src
 COPY src ./src
+COPY assets ./assets
 RUN touch src/main.rs && cargo build --release
 
 # ── Stage 3: final image ────────────────────────────────────────
