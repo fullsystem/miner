@@ -11,7 +11,7 @@ services:
       # Percentage of CPU cores used by the miner (1-100)
       POWER: ${POWER:-50}
       # Worker name shown at the pool (useful with multiple instances)
-      WORKER_NAME: ${WORKER_NAME:-docker}
+      WORKER_NAME: ${WORKER_NAME:-miner}
       # Dashboard password; without it the panel is public read-only
       # DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
     # Hard CPU cap for the whole container, on top of POWER — plays nice

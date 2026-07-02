@@ -50,7 +50,7 @@ impl Config {
             wallet,
             pool_url: get("POOL_URL")
                 .unwrap_or_else(|| "stratum+tcp://public-pool.io:21496".into()),
-            worker_name: get("WORKER_NAME").unwrap_or_else(|| "docker".into()),
+            worker_name: get("WORKER_NAME").unwrap_or_else(|| "miner".into()),
             power,
             port,
             miner_bin: get("MINER_BIN").unwrap_or_else(|| "/usr/local/bin/minerd".into()),
@@ -182,7 +182,7 @@ mod tests {
             vec![
                 "-a", "sha256d",
                 "-o", "stratum+tcp://public-pool.io:21496",
-                "-u", "bc1qexamplewalletaddress0000000000.docker",
+                "-u", "bc1qexamplewalletaddress0000000000.miner",
                 "-p", "x",
                 "-t", "2",
             ]
@@ -200,7 +200,7 @@ mod tests {
             c.miner_command_args(4),
             vec![
                 "--url", "stratum+tcp://public-pool.io:21496",
-                "--user", "bc1qexamplewalletaddress0000000000.docker",
+                "--user", "bc1qexamplewalletaddress0000000000.miner",
                 "--threads", "4",
                 "--gpu", "0",
             ]

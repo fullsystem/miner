@@ -5,9 +5,6 @@ environment-variable configuration, and a dashboard that shows real data only.
 Built to run on any homelab, VPS, or PaaS (Dokploy, etc.) alongside your other
 projects.
 
-> Inspired by [btc-lottery-miner](https://github.com/Educabral/btc-lottery-miner),
-> rethought for servers: no installer, no local state, no simulated numbers.
-
 ## Usage
 
 ```bash
@@ -29,7 +26,7 @@ Check your worker at `https://web.public-pool.io/#/app/YOUR_WALLET`.
 |---|---|---|
 | `WALLET` | — | **Required.** Your BTC address (receives the reward if you ever find a block) |
 | `POWER` | `50` | % of CPU cores used by the miner (1-100) |
-| `WORKER_NAME` | `docker` | Worker name shown at the pool (useful with multiple instances) |
+| `WORKER_NAME` | `miner` | Worker name shown at the pool (useful with multiple instances) |
 | `POOL_URL` | `stratum+tcp://public-pool.io:21496` | Solo pool (stratum) |
 | `PORT` | `3500` | Dashboard port |
 | `DASHBOARD_PASSWORD` | — | Dashboard password; without it the panel is public read-only |
