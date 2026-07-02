@@ -42,13 +42,7 @@ pub fn spawn_supervisor(
 
             // minerd logs shares to stderr; inheriting sends them to `docker logs`
             let spawned = Command::new(&cfg.miner_bin)
-                .args([
-                    "-a", "sha256d",
-                    "-o", &cfg.pool_url,
-                    "-u", &cfg.stratum_user(),
-                    "-p", "x",
-                    "-t", &threads.to_string(),
-                ])
+                .args(cfg.miner_command_args(threads))
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
                 .kill_on_drop(true)

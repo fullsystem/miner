@@ -8,6 +8,7 @@ pub struct Config {
     pub power: u8,
     pub port: u16,
     pub miner_bin: String,
+    pub miner_args: Option<String>,
     // Read in phase 2 (dashboard login screen)
     #[allow(dead_code)]
     pub dashboard_password: Option<String>,
@@ -53,6 +54,7 @@ impl Config {
             power,
             port,
             miner_bin: get("MINER_BIN").unwrap_or_else(|| "/usr/local/bin/minerd".into()),
+            miner_args: get("MINER_ARGS").filter(|a| !a.trim().is_empty()),
             dashboard_password: get("DASHBOARD_PASSWORD").filter(|p| !p.is_empty()),
         })
     }
@@ -68,6 +70,31 @@ impl Config {
             self.wallet.clone()
         } else {
             format!("{}.{}", self.wallet, self.worker_name)
+        }
+    }
+
+    /// Arguments for the miner process. With MINER_ARGS set, the engine is
+    /// fully pluggable (GPU miners, other algos): each token has {POOL},
+    /// {USER} and {THREADS} substituted. Otherwise, defaults to cpuminer
+    /// sha256d flags.
+    pub fn miner_command_args(&self, threads: usize) -> Vec<String> {
+        match &self.miner_args {
+            Some(raw) => raw
+                .split_whitespace()
+                .map(|token| {
+                    token
+                        .replace("{POOL}", &self.pool_url)
+                        .replace("{USER}", &self.stratum_user())
+                        .replace("{THREADS}", &threads.to_string())
+                })
+                .collect(),
+            None => vec![
+                "-a".into(), "sha256d".into(),
+                "-o".into(), self.pool_url.clone(),
+                "-u".into(), self.stratum_user(),
+                "-p".into(), "x".into(),
+                "-t".into(), threads.to_string(),
+            ],
         }
     }
 }
@@ -145,6 +172,51 @@ mod tests {
     fn stratum_user_keeps_wallet_with_embedded_worker() {
         let c = cfg(&[("WALLET", "bc1qexamplewalletaddress0000000000.rig")]).unwrap();
         assert_eq!(c.stratum_user(), "bc1qexamplewalletaddress0000000000.rig");
+    }
+
+    #[test]
+    fn default_miner_args_target_sha256d() {
+        let c = cfg(&[WALLET]).unwrap();
+        assert_eq!(
+            c.miner_command_args(2),
+            vec![
+                "-a", "sha256d",
+                "-o", "stratum+tcp://public-pool.io:21496",
+                "-u", "bc1qexamplewalletaddress0000000000.docker",
+                "-p", "x",
+                "-t", "2",
+            ]
+        );
+    }
+
+    #[test]
+    fn custom_miner_args_substitute_placeholders() {
+        let c = cfg(&[
+            WALLET,
+            ("MINER_ARGS", "--url {POOL} --user {USER} --threads {THREADS} --gpu 0"),
+        ])
+        .unwrap();
+        assert_eq!(
+            c.miner_command_args(4),
+            vec![
+                "--url", "stratum+tcp://public-pool.io:21496",
+                "--user", "bc1qexamplewalletaddress0000000000.docker",
+                "--threads", "4",
+                "--gpu", "0",
+            ]
+        );
+    }
+
+    #[test]
+    fn custom_miner_args_without_placeholders_pass_verbatim() {
+        let c = cfg(&[WALLET, ("MINER_ARGS", "--benchmark")]).unwrap();
+        assert_eq!(c.miner_command_args(8), vec!["--benchmark"]);
+    }
+
+    #[test]
+    fn blank_miner_args_fall_back_to_default() {
+        let c = cfg(&[WALLET, ("MINER_ARGS", "   ")]).unwrap();
+        assert_eq!(c.miner_command_args(1)[..2], ["-a", "sha256d"]);
     }
 
     #[test]
