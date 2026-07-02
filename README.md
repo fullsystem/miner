@@ -1,60 +1,61 @@
 # miner
 
-Minerador solo de Bitcoin (modo "loteria") **docker-first**: um container, configuração
-100% por variáveis de ambiente, dashboard com dados 100% reais. Feito para rodar em
-qualquer VPS/Dokploy/homelab ao lado dos seus outros projetos.
+Docker-first solo Bitcoin miner ("lottery mining"): a single container, 100%
+environment-variable configuration, and a dashboard that shows real data only.
+Built to run on any homelab, VPS, or PaaS (Dokploy, etc.) alongside your other
+projects.
 
-> Inspirado no [btc-lottery-miner](https://github.com/Educabral/btc-lottery-miner),
-> repensado para servidores: sem instalador, sem estado local, sem números simulados.
+> Inspired by [btc-lottery-miner](https://github.com/Educabral/btc-lottery-miner),
+> rethought for servers: no installer, no local state, no simulated numbers.
 
-## Uso
+## Usage
 
 ```bash
 docker run -d \
-  -e WALLET=bc1qsuacarteira... \
+  -e WALLET=bc1qyourwallet... \
   -e POWER=50 \
   -p 3500:3500 \
   ghcr.io/fullsystem/miner:latest
 ```
 
-Ou com compose: copie `.env.example` para `.env`, preencha `WALLET` e rode
+Or with compose: copy `.env.example` to `.env`, set `WALLET`, and run
 `docker compose up -d`.
 
-Verifique seu worker em `https://web.public-pool.io/#/app/SUA_WALLET`.
+Check your worker at `https://web.public-pool.io/#/app/YOUR_WALLET`.
 
-## Configuração (env)
+## Configuration (env)
 
-| Variável | Padrão | Descrição |
+| Variable | Default | Description |
 |---|---|---|
-| `WALLET` | — | **Obrigatória.** Sua carteira BTC (recebe o prêmio se achar um bloco) |
-| `POWER` | `50` | % dos núcleos da CPU usados pelo minerador (1-100) |
-| `WORKER_NAME` | `docker` | Nome do worker na pool (útil com várias instâncias) |
-| `POOL_URL` | `stratum+tcp://public-pool.io:21496` | Pool solo (stratum) |
-| `PORT` | `3500` | Porta do dashboard |
-| `DASHBOARD_PASSWORD` | — | Senha do painel; sem ela, painel público somente-leitura |
-| `MINER_BIN` | `/usr/local/bin/minerd` | Binário do minerador |
-| `MINER_ARGS` | — | Argumentos customizados do minerador (veja abaixo) |
+| `WALLET` | — | **Required.** Your BTC address (receives the reward if you ever find a block) |
+| `POWER` | `50` | % of CPU cores used by the miner (1-100) |
+| `WORKER_NAME` | `docker` | Worker name shown at the pool (useful with multiple instances) |
+| `POOL_URL` | `stratum+tcp://public-pool.io:21496` | Solo pool (stratum) |
+| `PORT` | `3500` | Dashboard port |
+| `DASHBOARD_PASSWORD` | — | Dashboard password; without it the panel is public read-only |
+| `MINER_BIN` | `/usr/local/bin/minerd` | Miner binary |
+| `MINER_ARGS` | — | Custom miner arguments (see below) |
 
-Para limitar o consumo além do `POWER`, use o limite de CPU do próprio Docker
-(`cpus: "2.0"` no compose ou o limite de recursos do Dokploy).
+To cap resource usage beyond `POWER`, use Docker's own CPU limit
+(`cpus: "2.0"` in compose).
 
-## Engine plugável (GPU, outros miners)
+## Pluggable engine (GPU, other miners)
 
-O motor de mineração é trocável via env: monte seu binário no container e
-aponte `MINER_BIN` + `MINER_ARGS`. Nos argumentos, `{POOL}`, `{USER}` e
-`{THREADS}` são substituídos pela configuração:
+The mining engine is swappable via env: mount your own binary into the
+container and point `MINER_BIN` + `MINER_ARGS` at it. Inside the arguments,
+`{POOL}`, `{USER}` and `{THREADS}` are substituted from the configuration:
 
 ```yaml
 services:
   miner:
     image: ghcr.io/fullsystem/miner:latest
     volumes:
-      - ./meu-gpu-miner:/opt/gpu-miner:ro
+      - ./my-gpu-miner:/opt/gpu-miner:ro
     environment:
       WALLET: bc1q...
       MINER_BIN: /opt/gpu-miner
       MINER_ARGS: "--url {POOL} --user {USER} --pass x --gpu 0"
-    # GPU NVIDIA: requer nvidia-container-toolkit no host
+    # NVIDIA GPU: requires nvidia-container-toolkit on the host
     # deploy:
     #   resources:
     #     reservations:
@@ -64,36 +65,37 @@ services:
     #           capabilities: [gpu]
 ```
 
-O supervisor (restart com backoff, shutdown limpo, `/health`) funciona igual
-para qualquer engine.
+The supervisor (backoff restarts, clean shutdown, `/health`) works the same
+for any engine.
 
-> **Honestidade sobre GPU + Bitcoin**: SHA-256d em GPU perdeu a corrida para os
-> ASICs em ~2013. Uma GPU melhora suas chances em ~1000x sobre a CPU, mas a
-> loteria continua sendo loteria. O suporte existe pela flexibilidade (outros
-> algoritmos/pools/miners), não por viabilidade econômica em BTC.
+> **An honest note on GPU + Bitcoin**: GPUs lost the SHA-256d race to ASICs
+> around 2013. A GPU improves your odds ~1000x over a CPU, but the lottery is
+> still a lottery. This feature exists for flexibility (other algorithms,
+> pools, miners) — not for economic viability on BTC.
 
-## Arquitetura
+## Architecture
 
-- **Motor de hash**: [pooler/cpuminer](https://github.com/pooler/cpuminer) (`minerd`),
-  compilado do fonte no build da imagem — nenhum binário pré-compilado no repo,
-  suporte nativo a amd64 e arm64.
-- **Supervisor/dashboard**: binário Rust (axum + tokio) que gerencia o minerador
-  (restart com backoff exponencial), expõe `/health` e serve o painel.
-- **Shutdown limpo**: `SIGTERM` encerra minerador e servidor graciosamente.
+- **Hash engine**: [pooler/cpuminer](https://github.com/pooler/cpuminer)
+  (`minerd`), compiled from source during the image build — no prebuilt
+  binaries in the repo, native amd64 and arm64 support.
+- **Supervisor/dashboard**: a Rust binary (axum + tokio) that manages the
+  miner process (exponential-backoff restarts), exposes `/health`, and serves
+  the panel.
+- **Clean shutdown**: `SIGTERM` gracefully stops both the miner and the server.
 
-## Aviso honesto
+## Honest disclaimer
 
-Minerar Bitcoin solo com CPU é uma loteria de verdade: as chances de encontrar um
-bloco são efetivamente zero (a rede opera em EH/s; uma CPU, em MH/s). Rode por
-diversão, aprendizado e para contribuir com a descentralização — não por renda.
+Solo-mining Bitcoin on a CPU is a true lottery: the odds of finding a block
+are effectively zero (the network operates in EH/s; a CPU, in MH/s). Run it
+for fun, learning, and to support decentralization — not for income.
 
-## Desenvolvimento
+## Development
 
 ```bash
 cargo test
-WALLET=bc1q... MINER_BIN=/caminho/minerd cargo run
+WALLET=bc1q... MINER_BIN=/path/to/minerd cargo run
 ```
 
-## Licença
+## License
 
 MIT

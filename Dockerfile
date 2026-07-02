@@ -1,6 +1,6 @@
-# ── Stage 1: compila o cpuminer (pooler) do fonte ──────────────
-# Compilar do fonte (em vez de commitar um binário) garante auditabilidade
-# e suporte multi-arch: buildx compila nativo em amd64 e arm64.
+# ── Stage 1: build cpuminer (pooler) from source ────────────────
+# Building from source (instead of committing a binary) keeps the image
+# auditable and enables multi-arch: buildx compiles natively on amd64/arm64.
 FROM debian:bookworm-slim AS cpuminer-build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git build-essential autoconf automake libtool pkg-config libcurl4-openssl-dev ca-certificates \
@@ -9,10 +9,10 @@ RUN git clone --depth 1 --branch v2.5.1 https://github.com/pooler/cpuminer.git /
 WORKDIR /src
 RUN ./autogen.sh && ./configure CFLAGS="-O3" && make -j"$(nproc)"
 
-# ── Stage 2: compila o app Rust ─────────────────────────────────
+# ── Stage 2: build the Rust app ─────────────────────────────────
 FROM rust:1.96-slim-bookworm AS app-build
 WORKDIR /app
-# Camada de cache das dependências: builda um main vazio primeiro
+# Dependency cache layer: build an empty main first
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo 'fn main() {}' > src/main.rs \
     && cargo build --release \
@@ -20,7 +20,7 @@ RUN mkdir src && echo 'fn main() {}' > src/main.rs \
 COPY src ./src
 RUN touch src/main.rs && cargo build --release
 
-# ── Stage 3: imagem final ───────────────────────────────────────
+# ── Stage 3: final image ────────────────────────────────────────
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4 ca-certificates \

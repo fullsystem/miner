@@ -6,14 +6,14 @@ services:
     ports:
       - "3500:3500"
     environment:
-      # Sua carteira BTC — única variável obrigatória
-      WALLET: ${WALLET:?Defina WALLET no .env}
-      # Percentual dos núcleos da CPU usados pelo minerador (1-100)
+      # Your BTC wallet — the only required variable
+      WALLET: ${WALLET:?Set WALLET in .env}
+      # Percentage of CPU cores used by the miner (1-100)
       POWER: ${POWER:-50}
-      # Nome do worker exibido na pool (útil ao rodar várias instâncias)
+      # Worker name shown at the pool (useful with multiple instances)
       WORKER_NAME: ${WORKER_NAME:-docker}
-      # Senha do dashboard; sem ela o painel fica público em modo leitura
+      # Dashboard password; without it the panel is public read-only
       # DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
-    # Teto de CPU do container inteiro, além do POWER — bom para
-    # conviver com outros projetos no mesmo servidor:
+    # Hard CPU cap for the whole container, on top of POWER — plays nice
+    # with other projects on the same box:
     # cpus: "2.0"
