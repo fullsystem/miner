@@ -34,10 +34,26 @@ pub struct NetworkStats {
 
 pub fn parse_pool_stats(v: &Value) -> PoolStats {
     let acc = &v["accounting"];
+    // The pool reports a best difficulty in up to three places depending on
+    // session state; take the max so it never shows 0 while shares exist.
+    let workers_best = v["workers"]
+        .as_array()
+        .map(|ws| {
+            ws.iter()
+                .filter_map(|w| w["bestDifficulty"].as_f64())
+                .fold(0.0, f64::max)
+        })
+        .unwrap_or(0.0);
+    let best_difficulty = v["bestDifficulty"]
+        .as_f64()
+        .unwrap_or(0.0)
+        .max(acc["bestSubmissionDifficulty"].as_f64().unwrap_or(0.0))
+        .max(workers_best);
+
     PoolStats {
         hashrate_10m: acc["hashRateLast10Minutes"].as_f64().unwrap_or(0.0),
         hashrate_1h: acc["hashRateLastHour"].as_f64().unwrap_or(0.0),
-        best_difficulty: v["bestDifficulty"].as_f64().unwrap_or(0.0),
+        best_difficulty,
         workers: v["workersCount"].as_u64().unwrap_or(0),
         accepted_shares: acc["totalAcceptedShares"].as_u64().unwrap_or(0),
     }
@@ -184,6 +200,19 @@ mod tests {
     #[test]
     fn pool_stats_default_to_zero_on_missing_fields() {
         assert_eq!(parse_pool_stats(&json!({})), PoolStats::default());
+    }
+
+    #[test]
+    fn best_difficulty_takes_the_max_across_all_sources() {
+        // Live sessions sometimes report 0 at the top level while the real
+        // best sits in accounting or per-worker data
+        let v = json!({
+            "bestDifficulty": 0,
+            "workersCount": 1,
+            "accounting": {"totalAcceptedShares": 117, "bestSubmissionDifficulty": 8500.0},
+            "workers": [{"name": "homelab", "bestDifficulty": 12000.5}]
+        });
+        assert_eq!(parse_pool_stats(&v).best_difficulty, 12000.5);
     }
 
     #[test]
